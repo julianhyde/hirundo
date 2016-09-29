@@ -1,0 +1,17 @@
+Hirundo release 0.1
+
+This is a source or binary distribution of Hirundo.
+
+Changes since the previous release are described in the
+HISTORY.md file.
+
+The LICENSE and NOTICE files contain license information.
+
+If this is a source distribution, you can find instructions how to
+build the release in the "Building from a source distribution" section
+in README.md.
+
+README.md also contains examples of running Hirundo.
+
+Further information about Hirundo is available at its web site,
+http://github.com/julianhyde/hirundo.
