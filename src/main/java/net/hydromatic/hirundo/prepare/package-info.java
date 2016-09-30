@@ -14,14 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 */
-package net.hydromatic.hirundo.test;
 
-import org.junit.Test;
+/**
+ * Preparation and execution of statements.
+ */
+package net.hydromatic.hirundo.prepare;
 
-/** Unit test for Hirundo. */
-public class HirundoTest {
-  @Test public void testGenerateAll() {
-  }
-}
-
-// End HirundoTest.java
+// End package-info.java
