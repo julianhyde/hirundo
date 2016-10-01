@@ -35,7 +35,8 @@ public class HirundoJdbcTest {
     Connection c = DriverManager.getConnection("jdbc:hirundo:");
     final OlapConnection olapConnection = c.unwrap(OlapConnection.class);
     final OlapDatabaseMetaData metaData = olapConnection.getMetaData();
-    final ResultSet tables = metaData.getTables(null, null, null, null);
+    final ResultSet tables =
+        metaData.getTables(c.getCatalog(), c.getSchema(), null, null);
     assertThat(tables.next(), is(false));
     assertThat(olapConnection.isClosed(), is(false));
     c.close();

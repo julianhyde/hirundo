@@ -18,28 +18,32 @@ package net.hydromatic.hirundo.jdbc;
 
 import net.hydromatic.hirundo.prepare.Result;
 import net.hydromatic.hirundo.prepare.ResultAxis;
+import net.hydromatic.hirundo.prepare.ValidatedQuery;
 
-import com.google.common.collect.ImmutableList;
+import org.apache.calcite.avatica.AvaticaStatement;
+import org.apache.calcite.avatica.Meta;
+import org.apache.calcite.jdbc.CalciteOlapStatement;
+import org.apache.calcite.jdbc.CalcitePrepare;
+import org.apache.calcite.jdbc.CalciteResultSet;
 
 import org.olap4j.Cell;
 import org.olap4j.CellSet;
 import org.olap4j.CellSetAxis;
 import org.olap4j.CellSetMetaData;
-import org.olap4j.OlapException;
 import org.olap4j.Position;
-import org.olap4j.query.Query;
 
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.TimeZone;
 
 /** Implementation of {@link CellSet} for Hirundo. */
-public class HirundoCellSet extends AbstractResultSet
+public class HirundoCellSet extends CalciteResultSet
     implements CellSet, Executable {
-  final Query query;
+  final ValidatedQuery query;
   private Result result;
-  protected boolean closed;
   private final HirundoCellSetMetaData metaData;
   private final List<CellSetAxis> axisList = new ArrayList<>();
   private CellSetAxis filterAxis;
@@ -50,50 +54,19 @@ public class HirundoCellSet extends AbstractResultSet
    *
    * @param statement Statement
    */
-  public HirundoCellSet(HirundoStatement statement) {
-    super(statement);
-    this.query = statement.getQuery();
+  protected HirundoCellSet(AvaticaStatement statement,
+      CalcitePrepare.CalciteSignature calciteSignature,
+      ResultSetMetaData resultSetMetaData, TimeZone timeZone,
+      Meta.Frame firstFrame) {
+    super(statement, calciteSignature, resultSetMetaData, timeZone, firstFrame);
+    this.metaData = (HirundoCellSetMetaData) resultSetMetaData;
+    this.query = metaData.statement.getQuery();
     assert query != null;
-    this.closed = false;
-    if (statement instanceof HirundoPreparedStatement) {
-      this.metaData = ((HirundoPreparedStatement) statement).cellSetMetaData;
-    } else {
-      this.metaData = new HirundoCellSetMetaData(statement, query);
-    }
     this.emptyCoordinates = Collections.nCopies(query.getAxes().size(), -1);
   }
 
-  /**
-   * Executes a query. Not part of the olap4j API; internal to the mondrian
-   * driver.
-   *
-   * <p>This method may take some time. While it is executing, a client may
-   * execute {@link HirundoStatement#cancel()}.
-   *
-   * @throws org.olap4j.OlapException on error
-   */
-  void execute() throws OlapException {
-    result = statement.connection.executor.execute(this);
-
-    // initialize axes
-    for (ResultAxis axis : result.axes) {
-      axisList.add(new HirundoCellSetAxis(this, axis));
-    }
-
-    // initialize filter axis
-    final ResultAxis axis = result.slicerAxis;
-    filterAxis = new HirundoCellSetAxis(this, axis);
-  }
-
-  public <T> T unwrap(Class<T> iface) throws SQLException {
-    if (iface.isInstance(this)) {
-      return iface.cast(this);
-    }
-    throw statement.connection.factory.createException("cannot cast");
-  }
-
-  public boolean isWrapperFor(Class<?> iface) throws SQLException {
-    return iface.isInstance(this);
+  @Override public CalciteOlapStatement getStatement() {
+    return (CalciteOlapStatement) super.getStatement();
   }
 
   public CellSetMetaData getMetaData() {
@@ -108,6 +81,16 @@ public class HirundoCellSet extends AbstractResultSet
     return filterAxis;
   }
 
+  @Override protected HirundoCellSet execute() throws SQLException {
+    super.execute();
+    result = (Result) cursor;
+    for (ResultAxis axis : result.axes) {
+      axisList.add(new HirundoCellSetAxis(this, axis));
+    }
+    filterAxis = new HirundoCellSetAxis(this, result.slicerAxis);
+    return this;
+  }
+
   public Cell getCell(List<Integer> coordinates) {
     return getCellInternal(coordinates);
   }
@@ -117,10 +100,9 @@ public class HirundoCellSet extends AbstractResultSet
   }
 
   public List<Integer> ordinalToCoordinates(int ordinal) {
-    ImmutableList<ResultAxis> axes = result.axes;
     final List<Integer> pos = new ArrayList<>();
     int modulo = 1;
-    for (ResultAxis axis : axes) {
+    for (ResultAxis axis : result.axes) {
       int prevModulo = modulo;
       modulo *= axis.positions.size();
       pos.add((ordinal % modulo) / prevModulo);
@@ -164,9 +146,9 @@ public class HirundoCellSet extends AbstractResultSet
         dimensions.add(axis.getPositions().size());
       }
       throw new IndexOutOfBoundsException("Cell coordinates ("
-          + getCoordsAsString(pos)
+          + getCoordinatesAsString(pos)
               + ") fall outside CellSet bounds ("
-              + getCoordsAsString(dimensions) + ")");
+              + getCoordinatesAsString(dimensions) + ")");
     }
     return cell;
   }
@@ -183,7 +165,7 @@ public class HirundoCellSet extends AbstractResultSet
     return buf.toString();
   }
 
-  private static String getCoordsAsString(List<Integer> pos) {
+  private static String getCoordinatesAsString(List<Integer> pos) {
     StringBuilder buf = new StringBuilder();
     for (int i = 0; i < pos.size(); i++) {
       int po = pos.get(i);
@@ -222,17 +204,6 @@ public class HirundoCellSet extends AbstractResultSet
 
   public boolean next() throws SQLException {
     throw new UnsupportedOperationException();
-  }
-
-  public void close() throws SQLException {
-    if (closed) {
-      return;
-    }
-    this.closed = true;
-    if (this.result != null) {
-      this.result.close();
-    }
-    statement.onResultSetClose(this);
   }
 
 }

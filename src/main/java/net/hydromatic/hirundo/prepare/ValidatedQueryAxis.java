@@ -14,10 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 */
-package net.hydromatic.hirundo.jdbc;
+package net.hydromatic.hirundo.prepare;
 
-/** Definition of a property that may be specified when connecting via JDBC. */
-enum ConnectionProperty {
+/** MDX query that has been validated and is ready to execute. */
+public class ValidatedQueryAxis {
 }
 
-// End ConnectionProperty.java
+// End ValidatedQueryAxis.java

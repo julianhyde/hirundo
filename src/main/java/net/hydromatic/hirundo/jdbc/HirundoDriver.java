@@ -20,45 +20,35 @@ import net.hydromatic.hirundo.prepare.Result;
 
 import com.google.common.base.Throwables;
 
+import org.apache.calcite.avatica.BuiltInConnectionProperty;
+import org.apache.calcite.avatica.ConnectionProperty;
+import org.apache.calcite.avatica.DriverVersion;
+import org.apache.calcite.config.CalciteConnectionProperty;
+import org.apache.calcite.jdbc.CalciteFactory;
+import org.apache.calcite.jdbc.CalciteSchema;
+import org.apache.calcite.jdbc.Driver;
+
 import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
-import java.util.logging.Logger;
 
 /** Olap4j (JDBC) driver for Hirundo. */
-public class HirundoDriver implements Driver {
+public class HirundoDriver extends Driver {
+  private static final String CONNECT_STRING_PREFIX = "jdbc:hirundo:";
+
   static {
-    try {
-      register();
-    } catch (SQLException e) {
-      e.printStackTrace();
-    }
+    new HirundoDriver().register();
   }
 
-  protected final Factory factory;
   public final Executor executor;
 
   /** Creates a {@code HirundoDriver}. */
   public HirundoDriver() {
-    this.factory = createFactory();
     this.executor = createExecutor();
-  }
-
-  private static Factory createFactory() {
-    final String className = getFactoryClassName();
-    try {
-      final Class<?> clazz = Class.forName(className);
-      return (Factory) clazz.newInstance();
-    } catch (ClassNotFoundException | IllegalAccessException
-        | InstantiationException e) {
-      throw Throwables.propagate(e);
-    }
   }
 
   private static Executor createExecutor() {
@@ -72,90 +62,47 @@ public class HirundoDriver implements Driver {
     }
   }
 
-  private static String getFactoryClassName() {
-    return "net.hydromatic.hirundo.jdbc.FactoryImpl";
+  @Override protected String getFactoryClassName(JdbcVersion jdbcVersion) {
+    return "net.hydromatic.hirundo.jdbc.HirundoJdbc41Factory";
   }
 
   private static String getExecutorClassName() {
     return "net.hydromatic.hirundo.prepare.ExecutorImpl";
   }
 
-  /**
-   * Registers an instance of HirundoOlap4jDriver.
-   *
-   * <p>Called implicitly on class load, and implements the traditional
-   * 'Class.forName' way of registering JDBC drivers.
-   *
-   * @throws SQLException on error
-   */
-  private static void register() throws SQLException {
-    DriverManager.registerDriver(new HirundoDriver());
+  static boolean acceptsUrl(String url) {
+    return url.startsWith(CONNECT_STRING_PREFIX);
   }
 
   public Connection connect(String url, Properties info) throws SQLException {
-    if (!HirundoConnection.acceptsUrl(url)) {
+    if (!acceptsUrl(url)) {
       return null;
     }
-    return factory.newConnection(this, url, info);
+    final CalciteSchema rootSchema =
+        CalciteSchema.createRootSchema(true, false);
+    return ((CalciteFactory) factory).newConnection(this, factory, url, info,
+        rootSchema, null);
   }
 
   public boolean acceptsURL(String url) throws SQLException {
     return HirundoConnection.acceptsUrl(url);
   }
 
-  public DriverPropertyInfo[] getPropertyInfo(String url, Properties info)
-      throws SQLException {
-    List<DriverPropertyInfo> list = new ArrayList<>();
-
-    // First, add the contents of info
-    for (Map.Entry<Object, Object> entry : info.entrySet()) {
-      list.add(
-          new DriverPropertyInfo(
-              (String) entry.getKey(),
-              (String) entry.getValue()));
-    }
-    // Next, add property defns not mentioned in info
-    for (ConnectionProperty p : ConnectionProperty.values()) {
-      if (info.containsKey(p.name())) {
-        continue;
-      }
-      list.add(new DriverPropertyInfo(p.name(), null));
-    }
-    return list.toArray(new DriverPropertyInfo[list.size()]);
+  @Override protected Collection<ConnectionProperty> getConnectionProperties() {
+    final List<ConnectionProperty> list = new ArrayList<>();
+    Collections.addAll(list, BuiltInConnectionProperty.values());
+    Collections.addAll(list, CalciteConnectionProperty.values());
+    Collections.addAll(list, HirundoConnectionProperty.values());
+    return list;
   }
 
-  public Logger getParentLogger() {
-    return Logger.getLogger("");
-  }
-
-  /**
-   * Returns the driver name. Not in the JDBC API.
-   *
-   * @return Driver name
-   */
-  String getName() {
-    return HirundoDriverVersion.NAME;
-  }
-
-  /**
-   * Returns the driver version. Not in the JDBC API.
-   *
-   * @return Driver version
-   */
-  String getVersion() {
-    return HirundoDriverVersion.VERSION;
-  }
-
-  public int getMajorVersion() {
-    return HirundoDriverVersion.MAJOR_VERSION;
-  }
-
-  public int getMinorVersion() {
-    return HirundoDriverVersion.MINOR_VERSION;
-  }
-
-  public boolean jdbcCompliant() {
-    return false;
+  protected DriverVersion createDriverVersion() {
+    return DriverVersion.load(Driver.class,
+        "net-hydromatic-hirundo-jdbc.properties",
+        "Hirundo olap4j Driver",
+        "unknown version",
+        "Hirundo",
+        "unknown version");
   }
 
   /** Encapsulates the capabilities of the engine.

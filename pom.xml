@@ -71,6 +71,7 @@ limitations under the License.
     <gpg.useagent>true</gpg.useagent>
 
     <!-- This list is in alphabetical order. -->
+    <calcite.version>1.10.0-SNAPSHOT</calcite.version>
     <foodmart-data-hsqldb.version>0.3</foodmart-data-hsqldb.version>
     <!-- We support (and test against) Guava versions between
          14.0.1 and 19.0 (most recent).
@@ -120,6 +121,11 @@ limitations under the License.
       <artifactId>junit</artifactId>
       <version>${junit.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.calcite</groupId>
+      <artifactId>calcite-core</artifactId>
+      <version>${calcite.version}</version>
     </dependency>
     <dependency>
       <groupId>org.olap4j</groupId>

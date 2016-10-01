@@ -14,19 +14,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 */
-package net.hydromatic.hirundo.jdbc;
+package net.hydromatic.hirundo.prepare;
 
-/** Version information for the Hirundo olap4j driver.
- *
- * <p>TODO: generate this */
-class HirundoDriverVersion {
-  private HirundoDriverVersion() {}
+import com.google.common.collect.ImmutableMap;
 
-  static final String NAME = "Hirundo olap4j driver";
-  static final String VERSION = "0.1-SNAPSHOT";
-  static final int MAJOR_VERSION = 0;
-  static final int MINOR_VERSION = 1;
-  static final String GIT_LATEST_COMMIT = "unknown";
+import org.olap4j.Axis;
+
+import java.util.Map;
+
+/** MDX query that has been validated and is ready to execute. */
+public class ValidatedQuery {
+  private final Map<Axis, ValidatedQueryAxis> axisMap = ImmutableMap.of();
+
+  public Map<Axis, ValidatedQueryAxis> getAxes() {
+    return axisMap;
+  }
 }
 
-// End HirundoDriverVersion.java
+// End ValidatedQuery.java

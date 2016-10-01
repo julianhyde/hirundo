@@ -16,23 +16,25 @@
 */
 package net.hydromatic.hirundo.jdbc;
 
+import org.apache.calcite.avatica.AvaticaResultSetMetaData;
+import org.apache.calcite.avatica.AvaticaStatement;
+import org.apache.calcite.avatica.Meta;
+
 import org.olap4j.CellSetAxisMetaData;
 import org.olap4j.CellSetMetaData;
 import org.olap4j.metadata.Cube;
 import org.olap4j.metadata.NamedList;
 import org.olap4j.metadata.Property;
-import org.olap4j.query.Query;
-
-import java.sql.SQLException;
 
 /** Implementation of {@link CellSetMetaData} for Hirundo. */
-class HirundoCellSetMetaData implements CellSetMetaData {
-  private final HirundoStatement statement;
-  private final Query query;
+class HirundoCellSetMetaData extends AvaticaResultSetMetaData
+    implements CellSetMetaData {
+  final HirundoStatement statement;
 
-  HirundoCellSetMetaData(HirundoStatement statement, Query query) {
-    this.statement = statement;
-    this.query = query;
+  public HirundoCellSetMetaData(AvaticaStatement statement, Object query,
+      Meta.Signature signature) {
+    super(statement, query, signature);
+    this.statement = (HirundoStatement) statement;
   }
 
   public NamedList<Property> getCellProperties() {
@@ -49,101 +51,6 @@ class HirundoCellSetMetaData implements CellSetMetaData {
 
   public CellSetAxisMetaData getFilterAxisMetaData() {
     return null;
-  }
-
-  public int getColumnCount() throws SQLException {
-    return 0;
-  }
-
-  public boolean isAutoIncrement(int column) throws SQLException {
-    return false;
-  }
-
-  public boolean isCaseSensitive(int column) throws SQLException {
-    return false;
-  }
-
-  public boolean isSearchable(int column) throws SQLException {
-    return false;
-  }
-
-  public boolean isCurrency(int column) throws SQLException {
-    return false;
-  }
-
-  public int isNullable(int column) throws SQLException {
-    return 0;
-  }
-
-  public boolean isSigned(int column) throws SQLException {
-    return false;
-  }
-
-  public int getColumnDisplaySize(int column) throws SQLException {
-    return 0;
-  }
-
-  public String getColumnLabel(int column) throws SQLException {
-    return null;
-  }
-
-  public String getColumnName(int column) throws SQLException {
-    return null;
-  }
-
-  public String getSchemaName(int column) throws SQLException {
-    return null;
-  }
-
-  public int getPrecision(int column) throws SQLException {
-    return 0;
-  }
-
-  public int getScale(int column) throws SQLException {
-    return 0;
-  }
-
-  public String getTableName(int column) throws SQLException {
-    return null;
-  }
-
-  public String getCatalogName(int column) throws SQLException {
-    return null;
-  }
-
-  public int getColumnType(int column) throws SQLException {
-    return 0;
-  }
-
-  public String getColumnTypeName(int column) throws SQLException {
-    return null;
-  }
-
-  public boolean isReadOnly(int column) throws SQLException {
-    return false;
-  }
-
-  public boolean isWritable(int column) throws SQLException {
-    return false;
-  }
-
-  public boolean isDefinitelyWritable(int column) throws SQLException {
-    return false;
-  }
-
-  public String getColumnClassName(int column) throws SQLException {
-    return null;
-  }
-
-  public <T> T unwrap(Class<T> iface) throws SQLException {
-    if (iface.isInstance(this)) {
-      return iface.cast(this);
-    }
-    throw statement.connection.factory.createException("cannot cast");
-  }
-
-  public boolean isWrapperFor(Class<?> iface) throws SQLException {
-    return iface.isInstance(this);
   }
 }
 

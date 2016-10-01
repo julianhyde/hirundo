@@ -16,37 +16,29 @@
 */
 package net.hydromatic.hirundo.jdbc;
 
+import net.hydromatic.hirundo.prepare.ValidatedQuery;
+
+import org.apache.calcite.avatica.Meta;
+import org.apache.calcite.jdbc.CalciteOlapStatement;
+
 import org.olap4j.CellSet;
 import org.olap4j.CellSetListener;
-import org.olap4j.OlapConnection;
 import org.olap4j.OlapException;
 import org.olap4j.OlapStatement;
 import org.olap4j.mdx.SelectNode;
-import org.olap4j.query.Query;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLWarning;
 
 /** Implementation of {@link OlapStatement} for Hirundo. */
-class HirundoStatement implements OlapStatement {
-  private int queryTimeoutMillis;
-  final HirundoConnection connection;
-
-  /** Support for {@link #closeOnCompletion()} method. */
-  boolean closeOnCompletion;
-
-  protected HirundoStatement(HirundoConnection connection,
-      int queryTimeoutMillis) {
-    this.queryTimeoutMillis = queryTimeoutMillis;
-    this.connection = connection;
+class HirundoStatement extends CalciteOlapStatement implements OlapStatement {
+  HirundoStatement(HirundoConnection connection, Meta.StatementHandle h,
+      int resultSetType, int resultSetConcurrency, int resultSetHoldability) {
+    super(connection, h, resultSetType, resultSetConcurrency,
+        resultSetHoldability);
   }
 
-  public int getQueryTimeoutMillis() {
-    return queryTimeoutMillis;
-  }
-
-  public Query getQuery() {
+  public ValidatedQuery getQuery() {
     return null;
   }
 
@@ -62,10 +54,6 @@ class HirundoStatement implements OlapStatement {
     }
   }
 
-  public OlapConnection getConnection() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
   public CellSet executeOlapQuery(String mdx) throws OlapException {
     throw new UnsupportedOperationException();
   }
@@ -79,184 +67,6 @@ class HirundoStatement implements OlapStatement {
     throw new UnsupportedOperationException();
   }
 
-  public ResultSet executeQuery(String sql) throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public int executeUpdate(String sql) throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public void close() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public int getMaxFieldSize() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public void setMaxFieldSize(int max) throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public int getMaxRows() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public void setMaxRows(int max) throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public void setEscapeProcessing(boolean enable) throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public int getQueryTimeout() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public void setQueryTimeout(int seconds) throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public void cancel() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public SQLWarning getWarnings() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public void clearWarnings() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public void setCursorName(String name) throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public boolean execute(String sql) throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public ResultSet getResultSet() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public int getUpdateCount() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public boolean getMoreResults() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public void setFetchDirection(int direction) throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public int getFetchDirection() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public void setFetchSize(int rows) throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public int getFetchSize() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public int getResultSetConcurrency() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public int getResultSetType() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public void addBatch(String sql) throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public void clearBatch() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public int[] executeBatch() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public boolean getMoreResults(int current) throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public ResultSet getGeneratedKeys() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public int executeUpdate(String sql, int autoGeneratedKeys)
-      throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public int executeUpdate(String sql, int[] columnIndexes)
-      throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public int executeUpdate(String sql, String[] columnNames)
-      throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public boolean execute(String sql, int autoGeneratedKeys)
-      throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public boolean execute(String sql, int[] columnIndexes) throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public boolean execute(String sql, String[] columnNames) throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public int getResultSetHoldability() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public boolean isClosed() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public void setPoolable(boolean poolable) throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public boolean isPoolable() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public void closeOnCompletion() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public boolean isCloseOnCompletion() throws SQLException {
-    throw new UnsupportedOperationException();
-  }
-
-  public <T> T unwrap(Class<T> iface) throws SQLException {
-    if (iface.isInstance(this)) {
-      return iface.cast(this);
-    }
-    throw connection.factory.createException("cannot cast");
-  }
-
-  public boolean isWrapperFor(Class<?> iface) throws SQLException {
-    return iface.isInstance(this);
-  }
 }
 
 // End HirundoStatement.java

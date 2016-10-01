@@ -16,53 +16,56 @@
 */
 package net.hydromatic.hirundo.jdbc;
 
-import net.hydromatic.hirundo.prepare.ResultAxis;
-import net.hydromatic.hirundo.prepare.ValidatedQueryAxis;
-
-import org.olap4j.Axis;
-import org.olap4j.CellSet;
-import org.olap4j.CellSetAxis;
-import org.olap4j.CellSetAxisMetaData;
-import org.olap4j.Position;
+import org.olap4j.OlapException;
+import org.olap4j.metadata.Dimension;
+import org.olap4j.metadata.Level;
+import org.olap4j.metadata.Member;
+import org.olap4j.metadata.NamedList;
+import org.olap4j.metadata.Property;
 
 import java.util.List;
-import java.util.ListIterator;
 
-/** Implementation of {@link CellSetAxis} for Hirundo. */
-class HirundoCellSetAxis implements CellSetAxis {
-  final HirundoCellSet cellSet;
-  final ResultAxis axis;
-  final ValidatedQueryAxis queryAxis;
+/** Implementation of {@link Level} for Hirundo. */
+class HirundoLevel extends HirundoElement implements Level {
+  final HirundoHierarchy hierarchy;
 
-  HirundoCellSetAxis(HirundoCellSet cellSet, ResultAxis axis) {
-    this.cellSet = cellSet;
-    this.axis = axis;
-    this.queryAxis = cellSet.query.getAxes().get(axis.location);
+  protected HirundoLevel(HirundoHierarchy hierarchy, String name,
+      String uniqueName, Larder larder) {
+    super(name, uniqueName, larder);
+    this.hierarchy = hierarchy;
   }
 
-  public Axis getAxisOrdinal() {
+  public HirundoHierarchy getHierarchy() {
+    return hierarchy;
+  }
+
+  public int getDepth() {
     throw new UnsupportedOperationException();
   }
 
-  public CellSet getCellSet() {
+  public Dimension getDimension() {
     throw new UnsupportedOperationException();
   }
 
-  public CellSetAxisMetaData getAxisMetaData() {
+  public Type getLevelType() {
     throw new UnsupportedOperationException();
   }
 
-  public List<Position> getPositions() {
+  public boolean isCalculated() {
     throw new UnsupportedOperationException();
   }
 
-  public int getPositionCount() {
+  public NamedList<Property> getProperties() {
     throw new UnsupportedOperationException();
   }
 
-  public ListIterator<Position> iterator() {
+  public List<Member> getMembers() throws OlapException {
+    throw new UnsupportedOperationException();
+  }
+
+  public int getCardinality() {
     throw new UnsupportedOperationException();
   }
 }
 
-// End HirundoCellSetAxis.java
+// End HirundoLevel.java
