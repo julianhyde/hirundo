@@ -27,12 +27,13 @@ import static org.apache.calcite.avatica.ConnectionConfigImpl.parse;
 
 /** Definition of a property that may be specified when connecting via JDBC. */
 enum HirundoConnectionProperty implements ConnectionProperty {
-  DUMMY("dummy", Type.BOOLEAN, false, false);
+  DUMMY("dummy", Type.BOOLEAN, false, false, Boolean.class);
 
   private final String camelName;
   private final Type type;
   private final Object defaultValue;
   private final boolean required;
+  private final Class valueClass;
 
   private static final Map<String, HirundoConnectionProperty> NAME_TO_PROPS;
 
@@ -45,12 +46,15 @@ enum HirundoConnectionProperty implements ConnectionProperty {
   }
 
   HirundoConnectionProperty(String camelName, Type type, Object defaultValue,
-      boolean required) {
+      boolean required, Class valueClass) {
     this.camelName = camelName;
     this.type = type;
     this.defaultValue = defaultValue;
     this.required = required;
-    assert defaultValue == null || type.valid(defaultValue);
+    this.valueClass = type.deduceValueClass(defaultValue, valueClass);
+    if (!type.valid(defaultValue, this.valueClass)) {
+      throw new AssertionError(camelName);
+    }
   }
 
   public String camelName() {
@@ -67,6 +71,10 @@ enum HirundoConnectionProperty implements ConnectionProperty {
 
   public boolean required() {
     return required;
+  }
+
+  public Class valueClass() {
+    return valueClass;
   }
 
   public ConnectionConfigImpl.PropEnv wrap(Properties properties) {
