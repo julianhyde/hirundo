@@ -56,7 +56,7 @@ class HirundoDatabaseMetaData extends AvaticaDatabaseMetaData
   }
 
   public Set<CellSetListener.Granularity>
-  getSupportedCellSetListenerGranularities() throws OlapException {
+      getSupportedCellSetListenerGranularities() throws OlapException {
     throw new UnsupportedOperationException();
   }
 

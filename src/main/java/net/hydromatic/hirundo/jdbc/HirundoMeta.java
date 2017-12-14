@@ -139,7 +139,7 @@ class HirundoMeta extends CalciteMetaImpl {
     public final String tableSchem;
     public final String name;
 
-    public MetaCube(HirundoCube cube, String tableCatalog, String tableSchem,
+    MetaCube(HirundoCube cube, String tableCatalog, String tableSchem,
         String name) {
       this.cube = cube;
       this.tableCatalog = tableCatalog;
@@ -152,7 +152,7 @@ class HirundoMeta extends CalciteMetaImpl {
   private static class HirundoMetaSchema extends MetaSchema {
     final HirundoSchema hirundoSchema;
 
-    public HirundoMetaSchema(String tableCatalog, String tableSchem,
+    HirundoMetaSchema(String tableCatalog, String tableSchem,
         HirundoSchema hirundoSchema) {
       super(tableCatalog, tableSchem);
       this.hirundoSchema = hirundoSchema;

@@ -63,8 +63,8 @@ public class HirundoJdbc41Factory extends CalciteFactory {
         rootSchema, typeFactory);
   }
 
-  public HirundoJdbc41DatabaseMetaData
-  newDatabaseMetaData(AvaticaConnection connection) {
+  public HirundoJdbc41DatabaseMetaData newDatabaseMetaData(
+      AvaticaConnection connection) {
     return new HirundoJdbc41DatabaseMetaData((HirundoConnection) connection);
   }
 
@@ -75,8 +75,8 @@ public class HirundoJdbc41Factory extends CalciteFactory {
         resultSetType, resultSetConcurrency, resultSetHoldability);
   }
 
-  public AvaticaPreparedStatement
-  newPreparedStatement(AvaticaConnection connection, Meta.StatementHandle h,
+  public AvaticaPreparedStatement newPreparedStatement(
+      AvaticaConnection connection, Meta.StatementHandle h,
       Meta.Signature signature, int resultSetType, int resultSetConcurrency,
       int resultSetHoldability) throws SQLException {
     return new HirundoJdbc41PreparedStatement(

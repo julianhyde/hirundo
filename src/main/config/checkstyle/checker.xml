@@ -37,7 +37,6 @@ limitations under the License.
     <!-- Verify that EVERY source file has the appropriate license -->
   <module name="Header">
     <property name="headerFile" value="${checkstyle.header.file}"/>
-    <property name="fileExtensions" value="java"/>
   </module>
 
   <!-- Checks for Javadoc comments (checker).           -->
@@ -91,10 +90,6 @@ limitations under the License.
     </module>
       <!-- Switch statements should be complete and with independent cases -->
     <module name="FallThrough"/>
-    <!-- For hadoop_yarn profile, some YARN exceptions aren't loading in checkstyle -->
-    <module name="RedundantThrows">
-        <property name="suppressLoadErrors" value="true" />
-    </module>
     <module name="SimplifyBooleanExpression"/>
     <module name="SimplifyBooleanReturn"/>
       <!-- Only one statement per line allowed -->
@@ -227,12 +222,12 @@ limitations under the License.
     <!-- Lines cannot exceed 80 chars, except if they are hyperlinks
          or strings (possibly preceded by '+' and followed by say '),'. -->
     <module name="LineLength">
-      <property name="max" value="80"/>
+      <property name="max" value="100"/>
       <property name="ignorePattern" value="^import|@see|@link|@BaseMessage|href|^[ +]*&quot;.*&quot;[);,]*$"/>
     </module>
       <!-- Over time, we will revise this down -->
     <module name="MethodLength">
-      <property name="max" value="390"/>
+      <property name="max" value="370"/>
     </module>
 
     <!-- Checks for whitespace (tree walker)                 -->

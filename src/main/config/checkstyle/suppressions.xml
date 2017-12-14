@@ -19,4 +19,7 @@ limitations under the License.
         "-//Puppy Crawl//DTD Suppressions 1.1//EN"
         "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 <suppressions>
+  <suppress checks="Header" files="LICENSE"/>
+  <suppress checks="Header" files="NOTICE"/>
+  <suppress checks=".*" files="net-hydromatic-hirundo-jdbc.properties"/>
 </suppressions>

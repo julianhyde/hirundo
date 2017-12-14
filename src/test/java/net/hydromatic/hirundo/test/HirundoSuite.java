@@ -31,7 +31,7 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
     HirundoJdbcTest.class
-})
+    })
 public class HirundoSuite {
 }
 

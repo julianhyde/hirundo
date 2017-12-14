@@ -31,7 +31,7 @@ class HirundoCellSetMetaData extends AvaticaResultSetMetaData
     implements CellSetMetaData {
   final HirundoStatement statement;
 
-  public HirundoCellSetMetaData(AvaticaStatement statement, Object query,
+  HirundoCellSetMetaData(AvaticaStatement statement, Object query,
       Meta.Signature signature) {
     super(statement, query, signature);
     this.statement = (HirundoStatement) statement;
