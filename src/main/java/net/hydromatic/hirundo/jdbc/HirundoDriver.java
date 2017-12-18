@@ -16,17 +16,22 @@
 */
 package net.hydromatic.hirundo.jdbc;
 
+import net.hydromatic.hirundo.prepare.HirundoPrepare;
 import net.hydromatic.hirundo.prepare.Result;
 
 import com.google.common.base.Throwables;
 
+import org.apache.calcite.avatica.AvaticaConnection;
 import org.apache.calcite.avatica.BuiltInConnectionProperty;
 import org.apache.calcite.avatica.ConnectionProperty;
 import org.apache.calcite.avatica.DriverVersion;
+import org.apache.calcite.avatica.Meta;
 import org.apache.calcite.config.CalciteConnectionProperty;
 import org.apache.calcite.jdbc.CalciteFactory;
+import org.apache.calcite.jdbc.CalcitePrepare;
 import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.jdbc.Driver;
+import org.apache.calcite.linq4j.function.Function0;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -62,12 +67,20 @@ public class HirundoDriver extends Driver {
     }
   }
 
+  @Override protected Function0<CalcitePrepare> createPrepareFactory() {
+    return HirundoPrepare.FACTORY;
+  }
+
   @Override protected String getFactoryClassName(JdbcVersion jdbcVersion) {
     return "net.hydromatic.hirundo.jdbc.HirundoJdbc41Factory";
   }
 
   private static String getExecutorClassName() {
     return "net.hydromatic.hirundo.prepare.ExecutorImpl";
+  }
+
+  @Override public Meta createMeta(AvaticaConnection connection) {
+    return new HirundoMeta((HirundoConnection) connection);
   }
 
   static boolean acceptsUrl(String url) {

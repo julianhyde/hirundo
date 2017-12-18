@@ -19,7 +19,6 @@ package net.hydromatic.hirundo.jdbc;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.avatica.AvaticaConnection;
 import org.apache.calcite.avatica.AvaticaFactory;
-import org.apache.calcite.avatica.AvaticaPreparedStatement;
 import org.apache.calcite.avatica.AvaticaStatement;
 import org.apache.calcite.avatica.Meta;
 import org.apache.calcite.avatica.QueryState;
@@ -75,7 +74,7 @@ public class HirundoJdbc41Factory extends CalciteFactory {
         resultSetType, resultSetConcurrency, resultSetHoldability);
   }
 
-  public AvaticaPreparedStatement newPreparedStatement(
+  public HirundoPreparedStatement newPreparedStatement(
       AvaticaConnection connection, Meta.StatementHandle h,
       Meta.Signature signature, int resultSetType, int resultSetConcurrency,
       int resultSetHoldability) throws SQLException {

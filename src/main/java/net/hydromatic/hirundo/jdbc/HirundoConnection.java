@@ -16,11 +16,16 @@
 */
 package net.hydromatic.hirundo.jdbc;
 
+import net.hydromatic.hirundo.prepare.Preparing;
+import net.hydromatic.hirundo.prepare.ValidatedQuery;
+
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.avatica.AvaticaFactory;
 import org.apache.calcite.avatica.Meta;
+import org.apache.calcite.avatica.NoSuchStatementException;
 import org.apache.calcite.avatica.QueryState;
 import org.apache.calcite.jdbc.CalciteOlapConnection;
 import org.apache.calcite.jdbc.CalciteSchema;
@@ -32,7 +37,11 @@ import org.olap4j.PreparedOlapStatement;
 import org.olap4j.Scenario;
 import org.olap4j.impl.NamedListImpl;
 import org.olap4j.impl.Olap4jUtil;
+import org.olap4j.mdx.SelectNode;
+import org.olap4j.mdx.parser.MdxParser;
 import org.olap4j.mdx.parser.MdxParserFactory;
+import org.olap4j.mdx.parser.MdxValidator;
+import org.olap4j.mdx.parser.impl.DefaultMdxParserImpl;
 import org.olap4j.metadata.Catalog;
 import org.olap4j.metadata.Database;
 import org.olap4j.metadata.NamedList;
@@ -43,6 +52,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** Implementation of {@link OlapConnection} for Hirundo. */
 abstract class HirundoConnection extends CalciteOlapConnection {
@@ -51,6 +61,8 @@ abstract class HirundoConnection extends CalciteOlapConnection {
   final HirundoDriver.Executor executor;
   private final NamedList<HirundoDatabase> databases;
   private final Schema currentSchema;
+  private final AtomicInteger handleGenerator = new AtomicInteger();
+  final OlapHelper olapHelper = OlapHelper.INSTANCE;
 
   static boolean acceptsUrl(String url) {
     return url.startsWith(CONNECT_STRING_PREFIX);
@@ -60,6 +72,7 @@ abstract class HirundoConnection extends CalciteOlapConnection {
   HirundoConnection(HirundoDriver driver, AvaticaFactory factory, String url,
       Properties info, CalciteSchema rootSchema, JavaTypeFactory typeFactory) {
     super(driver, factory, url, info, rootSchema, typeFactory);
+    Preconditions.checkArgument(factory instanceof HirundoJdbc41Factory);
     this.executor = driver.executor;
     final NamedList<HirundoDatabase> databases = new NamedListImpl<>();
     final NamedList<HirundoCatalog> catalogs = new NamedListImpl<>();
@@ -87,11 +100,44 @@ abstract class HirundoConnection extends CalciteOlapConnection {
 
   public PreparedOlapStatement prepareOlapStatement(String mdx)
       throws OlapException {
-    throw new UnsupportedOperationException();
+    final Preparing preparing =
+        new Preparing(this, handleGenerator.getAndIncrement());
+    final ValidatedQuery q = preparing.withMdx(mdx).validate();
+    try {
+      return getFactory()
+          .newPreparedStatement(this,
+              new Meta.StatementHandle(id, q.h, q.signature), q.signature,
+              q.resultSetType, q.resultSetConcurrency, q.resultSetHoldability);
+    } catch (SQLException e) {
+      throw olapHelper.toOlap(e);
+    }
+  }
+
+  PreparedOlapStatement prepareOlapStatement(SelectNode mdx)
+      throws OlapException {
+    final Preparing preparing =
+        new Preparing(this, handleGenerator.getAndIncrement());
+    final ValidatedQuery q = preparing.withNode(mdx).validate();
+    try {
+      return getFactory()
+          .newPreparedStatement(this,
+              new Meta.StatementHandle(id, q.h, q.signature), q.signature,
+              q.resultSetType, q.resultSetConcurrency, q.resultSetHoldability);
+    } catch (SQLException e) {
+      throw olapHelper.toOlap(e);
+    }
   }
 
   public MdxParserFactory getParserFactory() {
-    throw new UnsupportedOperationException();
+    return new MdxParserFactory() {
+      public MdxParser createMdxParser(OlapConnection olapConnection) {
+        return new DefaultMdxParserImpl();
+      }
+
+      public MdxValidator createMdxValidator(OlapConnection olapConnection) {
+        throw new UnsupportedOperationException();
+      }
+    };
   }
 
   public void setSchema(String schemaName) throws OlapException {
@@ -176,8 +222,8 @@ abstract class HirundoConnection extends CalciteOlapConnection {
   }
 
   // do not make public
-  AvaticaFactory getFactory() {
-    return factory;
+  HirundoJdbc41Factory getFactory() {
+    return (HirundoJdbc41Factory) factory;
   }
 
   String getUrl() {
@@ -193,6 +239,43 @@ abstract class HirundoConnection extends CalciteOlapConnection {
   createResultSet(Meta.MetaResultSet metaResultSet, QueryState state)
       throws SQLException {
     return super.createResultSet(metaResultSet, state);
+  }
+
+  /** Helps create exceptions. */
+  static class OlapHelper {
+    static final OlapHelper INSTANCE = new OlapHelper();
+
+    OlapException toOlap(SQLException e) {
+      return e instanceof OlapException
+          ? (OlapException) e
+          : new OlapException(e);
+    }
+
+    public OlapException createOlapException(String message, Throwable e) {
+      return new OlapException(message, e);
+    }
+  }
+
+  // do not make public
+  Trojan getTrojan() {
+    return new Trojan();
+  }
+
+  /** Allows acccess to private and protected members of connection
+   * to other classes in this package.
+   *
+   * <p>Do not make public. */
+  class Trojan {
+    long getMaxRetriesPerExecute() {
+      return maxRetriesPerExecute;
+    }
+
+    Meta.ExecuteResult prepareAndExecuteInternal(HirundoStatement statement,
+        String mdx, long maxRowCount)
+        throws SQLException, NoSuchStatementException {
+      return HirundoConnection.this.prepareAndExecuteInternal(statement, mdx,
+          maxRowCount);
+    }
   }
 }
 

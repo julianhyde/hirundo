@@ -17,6 +17,7 @@
 package net.hydromatic.hirundo.jdbc;
 
 import org.apache.calcite.avatica.Meta;
+import org.apache.calcite.avatica.NoSuchStatementException;
 import org.apache.calcite.jdbc.CalciteMetaImpl;
 import org.apache.calcite.linq4j.Enumerable;
 import org.apache.calcite.linq4j.Linq4j;
@@ -27,6 +28,17 @@ import org.apache.calcite.linq4j.function.Predicate1;
 class HirundoMeta extends CalciteMetaImpl {
   protected HirundoMeta(HirundoConnection connection) {
     super(connection);
+  }
+
+  HirundoConnection getConnection() {
+    return (HirundoConnection) connection;
+  }
+
+  @Override public ExecuteResult prepareAndExecute(StatementHandle h,
+      String sql, long maxRowCount, int maxRowsInFirstFrame,
+      PrepareCallback callback) throws NoSuchStatementException {
+    return super.prepareAndExecute(h, sql, maxRowCount, maxRowsInFirstFrame,
+        callback);
   }
 
   Enumerable<MetaCube> cubes(final MetaSchema schema) {

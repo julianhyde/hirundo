@@ -29,12 +29,12 @@ import org.olap4j.metadata.Property;
 /** Implementation of {@link CellSetMetaData} for Hirundo. */
 class HirundoCellSetMetaData extends AvaticaResultSetMetaData
     implements CellSetMetaData {
-  final HirundoStatement statement;
+  final HirundoPreparedStatement statement;
 
   HirundoCellSetMetaData(AvaticaStatement statement, Object query,
       Meta.Signature signature) {
     super(statement, query, signature);
-    this.statement = (HirundoStatement) statement;
+    this.statement = (HirundoPreparedStatement) statement;
   }
 
   public NamedList<Property> getCellProperties() {

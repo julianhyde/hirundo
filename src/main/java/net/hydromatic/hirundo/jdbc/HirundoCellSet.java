@@ -20,6 +20,8 @@ import net.hydromatic.hirundo.prepare.Result;
 import net.hydromatic.hirundo.prepare.ResultAxis;
 import net.hydromatic.hirundo.prepare.ValidatedQuery;
 
+import com.google.common.base.Preconditions;
+
 import org.apache.calcite.avatica.AvaticaStatement;
 import org.apache.calcite.avatica.Meta;
 import org.apache.calcite.jdbc.CalciteOlapStatement;
@@ -61,7 +63,7 @@ public class HirundoCellSet extends CalciteResultSet
     super(statement, calciteSignature, resultSetMetaData, timeZone, firstFrame);
     this.metaData = (HirundoCellSetMetaData) resultSetMetaData;
     this.query = metaData.statement.getQuery();
-    assert query != null;
+    Preconditions.checkNotNull(query);
     this.emptyCoordinates = Collections.nCopies(query.getAxes().size(), -1);
   }
 
@@ -89,6 +91,15 @@ public class HirundoCellSet extends CalciteResultSet
     }
     filterAxis = new HirundoCellSetAxis(this, result.slicerAxis);
     return this;
+  }
+
+  @Override public void close() {
+    super.close();
+    try {
+      ((HirundoStatement) getStatement()).onResultSetClose(this);
+    } catch (SQLException e) {
+      throw statement.connection.helper.wrap(null, e);
+    }
   }
 
   public Cell getCell(List<Integer> coordinates) {

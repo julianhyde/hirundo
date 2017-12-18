@@ -16,6 +16,8 @@
 */
 package net.hydromatic.hirundo.jdbc;
 
+import net.hydromatic.hirundo.prepare.ValidatedQuery;
+
 import org.apache.calcite.avatica.Meta;
 import org.apache.calcite.jdbc.CalcitePreparedOlapStatement;
 
@@ -32,6 +34,10 @@ abstract class HirundoPreparedStatement extends CalcitePreparedOlapStatement {
       int resultSetConcurrency, int resultSetHoldability) throws SQLException {
     super(connection, h, signature, resultSetType,
         resultSetConcurrency, resultSetHoldability);
+  }
+
+  public ValidatedQuery getQuery() {
+    return null;
   }
 
   public Cube getCube() {

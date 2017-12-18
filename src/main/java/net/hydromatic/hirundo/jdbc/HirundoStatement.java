@@ -16,10 +16,10 @@
 */
 package net.hydromatic.hirundo.jdbc;
 
-import net.hydromatic.hirundo.prepare.ValidatedQuery;
-
 import org.apache.calcite.avatica.Meta;
 import org.apache.calcite.jdbc.CalciteOlapStatement;
+import org.apache.calcite.jdbc.CalcitePrepare;
+import org.apache.calcite.util.TryThreadLocal;
 
 import org.olap4j.CellSet;
 import org.olap4j.CellSetListener;
@@ -38,8 +38,8 @@ class HirundoStatement extends CalciteOlapStatement implements OlapStatement {
         resultSetHoldability);
   }
 
-  public ValidatedQuery getQuery() {
-    return null;
+  @Override public HirundoConnection getConnection() {
+    return (HirundoConnection) super.getConnection();
   }
 
   /**
@@ -54,12 +54,22 @@ class HirundoStatement extends CalciteOlapStatement implements OlapStatement {
     }
   }
 
+  private CellSet executeQuery(CalcitePrepare.Query query)
+      throws OlapException {
+    try (TryThreadLocal.Memo ignore = CalcitePrepare.THREAD_QUERY.push(query)) {
+      final ResultSet resultSet = executeQuery("?");
+      return (CellSet) resultSet;
+    } catch (SQLException e) {
+      throw getConnection().olapHelper.toOlap(e);
+    }
+  }
+
   public CellSet executeOlapQuery(String mdx) throws OlapException {
-    throw new UnsupportedOperationException();
+    return executeQuery(CalcitePrepare.Query.ofMdx(mdx));
   }
 
   public CellSet executeOlapQuery(SelectNode selectNode) throws OlapException {
-    throw new UnsupportedOperationException();
+    return executeQuery(CalcitePrepare.Query.of(selectNode));
   }
 
   public void addListener(CellSetListener.Granularity granularity,
